@@ -1,18 +1,19 @@
-FROM openjdk:11-jre as builder
+FROM eclipse-temurin:17-jre as builder
 WORKDIR application
 ARG ARTIFACT_NAME
 COPY ${ARTIFACT_NAME}.jar application.jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
-# Download dockerize and cache that layer
+# Install wget (not included in eclipse-temurin image) and download dockerize
+RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
 ARG DOCKERIZE_VERSION
 RUN wget -O dockerize.tar.gz https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-alpine-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
 RUN tar xzf dockerize.tar.gz
 RUN chmod +x dockerize
 
 
-# wget is not installed on adoptopenjdk:11-jre-hotspot
-FROM adoptopenjdk:11-jre-hotspot
+# wget is not installed on eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre
 
 WORKDIR application
 
